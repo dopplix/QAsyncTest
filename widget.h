@@ -10,7 +10,7 @@ public:
     Widget(QWidget *parent = nullptr);
     ~Widget();
     QString request();
-
+    bool isBusy = false;
 signals:
     void receiveButtonClicked(QString serverStr);
 };

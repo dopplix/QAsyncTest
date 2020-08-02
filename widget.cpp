@@ -7,21 +7,25 @@
 #include <QLineEdit>
 #include <QtConcurrent>
 #include <QJsonObject>
+#include <QThread>
 
 Widget::Widget(QWidget *parent) : QWidget(parent){
     QVBoxLayout* layout = new QVBoxLayout;
     QPushButton* requestPush = new QPushButton("Request");
     QPushButton* receivePush = new QPushButton("Receive");
     QLineEdit* serverStrEdit = new QLineEdit;
+    QThread* thread = new QThread;
+    QObject* worker = new QObject;
     this->setLayout(layout);
         layout->addWidget(requestPush);
         layout->addWidget(receivePush);
         layout->addWidget(serverStrEdit);
     connect(requestPush,&QPushButton::clicked,[=]{
-        QtConcurrent::run([=]{
+//        QtConcurrent::run([=]{
+
             QString serverStr = request();
             qDebug()<<"In Call"<<serverStr;
-        });
+//        });
     });
     connect(receivePush,&QPushButton::clicked,[=]{
         QString serverStr = serverStrEdit->text();
