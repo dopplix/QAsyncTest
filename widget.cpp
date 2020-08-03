@@ -13,16 +13,15 @@ Widget::Widget(QWidget *parent) : QWidget(parent){
     QVBoxLayout* layout = new QVBoxLayout;
     QPushButton* requestPush = new QPushButton("Request");
     QPushButton* receivePush = new QPushButton("Receive");
+    QPushButton* workerPush = new QPushButton("Start Worker");
     QLineEdit* serverStrEdit = new QLineEdit;
-    QThread* thread = new QThread;
-    QObject* worker = new QObject;
     this->setLayout(layout);
         layout->addWidget(requestPush);
         layout->addWidget(receivePush);
         layout->addWidget(serverStrEdit);
+        layout->addWidget(workerPush);
     connect(requestPush,&QPushButton::clicked,[=]{
 //        QtConcurrent::run([=]{
-
             QString serverStr = request();
             qDebug()<<"In Call"<<serverStr;
 //        });
@@ -30,6 +29,9 @@ Widget::Widget(QWidget *parent) : QWidget(parent){
     connect(receivePush,&QPushButton::clicked,[=]{
         QString serverStr = serverStrEdit->text();
         emit(receiveButtonClicked(serverStr));
+    });
+    connect(workerPush,&QPushButton::clicked,[=]{
+        startWorker();
     });
 }
 Widget::~Widget(){
@@ -57,5 +59,16 @@ QString Widget::request(){
     delete loop;
     delete resultHolder;
     return resultStr;
+}
+void Widget::startWorker(){
+    QThread* thread = new QThread;
+    QObject* worker = new QObject;
+    worker->moveToThread(thread);
+    thread->start();
+    connect(this,&Widget::receiveButtonClicked,worker,[worker]{
+        worker->deleteLater();
+    },Qt::BlockingQueuedConnection);
+    connect(worker,&QObject::destroyed,thread,&QThread::quit);
+    connect(thread,&QThread::finished,thread,&QThread::deleteLater);
 }
 
